@@ -4,7 +4,7 @@ import { QuoteCanvas } from "@/components/quote/Canvas";
 import { ControlsPanel, type ControlsState } from "@/components/quote/ControlsPanel";
 import { exportQuotePng } from "@/components/quote/exportImage";
 import { mergeAdjacent, textToSegments, type Segment, segmentsToText } from "@/components/quote/types";
-import { EXPORT_FORMATS, GOOGLE_FONTS_HREF } from "@/lib/quote-fonts";
+import { EXPORT_FORMATS } from "@/lib/quote-fonts";
 import { Button } from "@/components/ui/button";
 import { Download, Moon, SunMedium } from "lucide-react";
 import { toast } from "sonner";
@@ -12,26 +12,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Quote Highlight Studio — Design shareable quote graphics" },
-      {
-        name: "description",
-        content:
-          "Compose beautiful quote graphics with custom fonts, highlights, and one-click export to Instagram, Threads, and more.",
-      },
-      { property: "og:title", content: "Quote Highlight Studio" },
-      {
-        property: "og:description",
-        content: "Design shareable quote graphics with highlights and curated fonts.",
-      },
-    ],
-    links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: GOOGLE_FONTS_HREF },
-    ],
-  }),
   component: Index,
 });
 
