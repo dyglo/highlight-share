@@ -42,11 +42,6 @@ export async function exportQuotePng(
     height: props.height,
     pixelRatio: 1,
     cacheBust: true,
-    style: {
-      transform: "translate(-50%, -50%)",
-      left: "50%",
-      top: "50%",
-    },
   });
 
   root.unmount();
