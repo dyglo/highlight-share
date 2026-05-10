@@ -132,6 +132,37 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+.pure-dark {
+  color-scheme: dark;
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.17 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.14 0 0);
+  --muted-foreground: oklch(0.73 0 0);
+  --accent: oklch(0.18 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.62 0.23 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(1 0 0 / 24%);
+  --sidebar: oklch(0 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 14%);
+  --sidebar-ring: oklch(1 0 0 / 24%);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -140,5 +171,20 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  .pure-dark input,
+  .pure-dark textarea,
+  .pure-dark button,
+  .pure-dark label,
+  .pure-dark select,
+  .pure-dark [role="combobox"],
+  .pure-dark [data-slot="select-trigger"] {
+    color: var(--color-foreground);
+  }
+
+  .pure-dark input::placeholder,
+  .pure-dark textarea::placeholder {
+    color: var(--color-muted-foreground);
   }
 }

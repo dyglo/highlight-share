@@ -1,0 +1,103 @@
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - heading "Quote Highlight Studio" [level=1] [ref=e7]
+        - paragraph [ref=e8]: Highlight, texture, export, and install.
+      - button "Download Instagram Square" [ref=e9]:
+        - img
+        - text: Download Instagram Square
+  - generic [ref=e10]:
+    - main [ref=e11]:
+      - generic [ref=e16]:
+        - heading "JOHN 10:10" [level=1] [ref=e17]
+        - generic [ref=e18]: "\"I have come that you may have life and have it more abundantly. The enemy comes to steal but God comes to give.\""
+    - complementary [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "Format" [level=3] [ref=e22]
+          - combobox [ref=e23]:
+            - img [ref=e24]
+          - combobox [ref=e26]
+        - generic [ref=e27]:
+          - heading "Title" [level=3] [ref=e28]
+          - textbox "JOHN 10:10" [ref=e29]
+          - generic [ref=e30]:
+            - text: Title font
+            - combobox [ref=e31]:
+              - img [ref=e32]
+            - combobox [ref=e34]
+          - generic [ref=e36]: "Title size: 110px"
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - heading "Body" [level=3] [ref=e42]
+            - button "Clear highlights" [ref=e43]:
+              - img
+              - text: Clear highlights
+          - textbox "Type your quote..." [ref=e44]: "\"I have come that you may have life and have it more abundantly. The enemy comes to steal but God comes to give.\""
+          - button "Apply text changes" [ref=e45]
+          - paragraph [ref=e46]: Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase.
+          - paragraph [ref=e47]: On phones and tablets, long-press the quote, drag the selection handles, then release to apply the current highlight color.
+          - generic [ref=e48]:
+            - text: Body font
+            - combobox [ref=e49]:
+              - img [ref=e50]
+            - combobox [ref=e52]
+          - generic [ref=e54]: "Body size: 56px"
+          - generic [ref=e58]:
+            - text: Alignment
+            - generic [ref=e59]:
+              - button [ref=e60]:
+                - img
+              - button [ref=e61]:
+                - img
+              - button [ref=e62]:
+                - img
+        - generic [ref=e63]:
+          - heading "Colors" [level=3] [ref=e64]
+          - generic [ref=e65]:
+            - generic [ref=e66]: Title color
+            - generic [ref=e67]:
+              - textbox [ref=e68] [cursor=pointer]: "#111111"
+              - textbox [ref=e69]: "#111111"
+          - generic [ref=e70]:
+            - generic [ref=e71]: Body text
+            - generic [ref=e72]:
+              - textbox [ref=e73] [cursor=pointer]: "#111111"
+              - textbox [ref=e74]: "#111111"
+          - generic [ref=e75]:
+            - generic [ref=e76]: Highlight
+            - generic [ref=e77]:
+              - textbox [ref=e78] [cursor=pointer]: "#ffe066"
+              - textbox [ref=e79]: "#ffe066"
+        - generic [ref=e80]:
+          - heading "Background" [level=3] [ref=e81]
+          - generic [ref=e82]:
+            - button "Color" [ref=e83]:
+              - img
+              - text: Color
+            - button "Texture" [ref=e84]:
+              - img
+              - text: Texture
+            - button "Image" [ref=e85]:
+              - img
+              - text: Image
+          - generic [ref=e86]:
+            - button "Cream Paper" [ref=e87]:
+              - generic [ref=e89]: Cream Paper
+            - button "White" [ref=e90]:
+              - generic [ref=e92]: White
+            - button "Ivory" [ref=e93]:
+              - generic [ref=e95]: Ivory
+            - button "Blush" [ref=e96]:
+              - generic [ref=e98]: Blush
+            - button "Sage" [ref=e99]:
+              - generic [ref=e101]: Sage
+            - button "Midnight" [ref=e102]:
+              - generic [ref=e104]: Midnight
+          - generic [ref=e105]:
+            - generic [ref=e106]: Custom
+            - generic [ref=e107]:
+              - textbox [ref=e108] [cursor=pointer]: "#f7f1e6"
+              - textbox [ref=e109]: "#f7f1e6"

@@ -2,6 +2,22 @@ import { toPng } from "html-to-image";
 import { createRoot } from "react-dom/client";
 import { createElement } from "react";
 import { QuoteCanvas, type CanvasProps } from "./Canvas";
+import { GOOGLE_FONTS_HREF } from "@/lib/quote-fonts";
+
+let cachedFontCssPromise: Promise<string | undefined> | null = null;
+
+async function getExportFontCss() {
+  if (!cachedFontCssPromise) {
+    cachedFontCssPromise = fetch(GOOGLE_FONTS_HREF, {
+      mode: "cors",
+      credentials: "omit",
+    })
+      .then((response) => (response.ok ? response.text() : undefined))
+      .catch(() => undefined);
+  }
+
+  return cachedFontCssPromise;
+}
 
 export async function exportQuotePng(
   props: Omit<CanvasProps, "onToggleSegment" | "onHighlightSelection" | "interactive" | "fitToContainer">,
@@ -37,11 +53,18 @@ export async function exportQuotePng(
     throw new Error("Render target not found");
   }
 
+  // html-to-image throws when it tries to inspect the cross-origin Google
+  // Fonts stylesheet directly. Supplying the CSS text ourselves bypasses
+  // that cssRules lookup path.
+  const fontEmbedCSS = await getExportFontCss();
   const dataUrl = await toPng(target, {
     width: props.width,
     height: props.height,
     pixelRatio: 1,
     cacheBust: true,
+    preferredFontFormat: "woff2",
+    fontEmbedCSS,
+    skipFonts: !fontEmbedCSS,
   });
 
   root.unmount();

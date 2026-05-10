@@ -10,8 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { QUOTE_FONTS, BACKGROUND_PRESETS, EXPORT_FORMATS, type ExportFormatId } from "@/lib/quote-fonts";
-import { AlignCenter, AlignLeft, AlignRight, Eraser } from "lucide-react";
+import {
+  QUOTE_FONTS,
+  BACKGROUND_PRESETS,
+  BACKGROUND_TEXTURES,
+  EXPORT_FORMATS,
+  type BackgroundMode,
+  type BackgroundTextureId,
+  type ExportFormatId,
+} from "@/lib/quote-fonts";
+import { AlignCenter, AlignLeft, AlignRight, Eraser, ImagePlus, PaintBucket, ScanText } from "lucide-react";
 
 export type ControlsState = {
   title: string;
@@ -24,6 +32,9 @@ export type ControlsState = {
   titleColor: string;
   highlightColor: string;
   background: string;
+  backgroundMode: BackgroundMode;
+  backgroundTextureId: BackgroundTextureId;
+  backgroundImage: string | null;
   align: "left" | "center" | "right";
   format: ExportFormatId;
 };
@@ -33,6 +44,8 @@ type Props = {
   onChange: (patch: Partial<ControlsState>) => void;
   onClearHighlights: () => void;
   onResetBody: () => void;
+  onUploadBackgroundImage: (file: File) => void;
+  onClearBackgroundImage: () => void;
 };
 
 function ColorRow({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -56,7 +69,14 @@ function ColorRow({ label, value, onChange }: { label: string; value: string; on
   );
 }
 
-export function ControlsPanel({ state, onChange, onClearHighlights, onResetBody }: Props) {
+export function ControlsPanel({
+  state,
+  onChange,
+  onClearHighlights,
+  onResetBody,
+  onUploadBackgroundImage,
+  onClearBackgroundImage,
+}: Props) {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
@@ -125,6 +145,9 @@ export function ControlsPanel({ state, onChange, onClearHighlights, onResetBody 
         <p className="text-xs text-muted-foreground">
           Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase.
         </p>
+        <p className="text-xs text-muted-foreground">
+          On phones and tablets, long-press the quote, drag the selection handles, then release to apply the current highlight color.
+        </p>
         <div>
           <Label className="text-xs">Body font</Label>
           <Select value={state.bodyFontId} onValueChange={(v) => onChange({ bodyFontId: v })}>
@@ -178,6 +201,30 @@ export function ControlsPanel({ state, onChange, onClearHighlights, onResetBody 
       <section className="space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Background</h3>
         <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant={state.backgroundMode === "color" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onChange({ backgroundMode: "color" })}
+          >
+            <PaintBucket className="mr-2 h-4 w-4" /> Color
+          </Button>
+          <Button
+            variant={state.backgroundMode === "texture" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onChange({ backgroundMode: "texture" })}
+          >
+            <ScanText className="mr-2 h-4 w-4" /> Texture
+          </Button>
+          <Button
+            variant={state.backgroundMode === "image" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onChange({ backgroundMode: "image" })}
+          >
+            <ImagePlus className="mr-2 h-4 w-4" /> Image
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
           {BACKGROUND_PRESETS.map((p) => (
             <button
               key={p.id}
@@ -192,6 +239,59 @@ export function ControlsPanel({ state, onChange, onClearHighlights, onResetBody 
           ))}
         </div>
         <ColorRow label="Custom" value={state.background} onChange={(v) => onChange({ background: v })} />
+
+        {state.backgroundMode === "texture" && (
+          <div className="space-y-2">
+            <Label className="text-xs">Texture style</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {BACKGROUND_TEXTURES.filter((texture) => texture.id !== "none").map((texture) => (
+                <Button
+                  key={texture.id}
+                  variant={state.backgroundTextureId === texture.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onChange({ backgroundTextureId: texture.id as BackgroundTextureId })}
+                  className="justify-start"
+                >
+                  {texture.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {state.backgroundMode === "image" && (
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Background image</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onUploadBackgroundImage(file);
+                  e.currentTarget.value = "";
+                }}
+                className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground"
+              />
+            </div>
+            {state.backgroundImage ? (
+              <div className="space-y-2">
+                <img
+                  src={state.backgroundImage}
+                  alt="Background preview"
+                  className="h-24 w-full rounded-md object-cover ring-1 ring-border"
+                />
+                <Button variant="outline" size="sm" onClick={onClearBackgroundImage} className="w-full">
+                  Remove background image
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Upload an image to fill the quote card background.
+              </p>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );
