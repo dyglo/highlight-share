@@ -103,11 +103,11 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(function Quot
           height: `${height}px`,
           background,
           position: "absolute",
-          left: "50%",
-          top: "50%",
+          left: fitToContainer ? "50%" : 0,
+          top: fitToContainer ? "50%" : 0,
           transform: fitToContainer
             ? `translate(-50%, -50%) scale(${scale})`
-            : "translate(-50%, -50%)",
+            : "none",
           transformOrigin: "center center",
           display: "flex",
           flexDirection: "column",
