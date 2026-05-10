@@ -56,3 +56,14 @@ export const BACKGROUND_PRESETS = [
   { id: "sage", name: "Sage", color: "#e6ede0" },
   { id: "midnight", name: "Midnight", color: "#0f1115" },
 ];
+
+export const BACKGROUND_TEXTURES = [
+  { id: "none", name: "None" },
+  { id: "paper-fiber", name: "Paper Fiber" },
+  { id: "dotted-canvas", name: "Dotted Canvas" },
+  { id: "graph-paper", name: "Graph Paper" },
+  { id: "linen", name: "Linen" },
+] as const;
+
+export type BackgroundTextureId = (typeof BACKGROUND_TEXTURES)[number]["id"];
+export type BackgroundMode = "color" | "texture" | "image";

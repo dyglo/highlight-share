@@ -1,0 +1,111 @@
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - heading "Quote Highlight Studio" [level=1] [ref=e7]
+        - paragraph [ref=e8]: Highlight, texture, export, and install.
+      - generic [ref=e9]:
+        - button "Light" [active] [ref=e115]:
+          - img
+          - text: Light
+        - button "Download Instagram Square" [ref=e11]:
+          - img
+          - text: Download Instagram Square
+  - generic [ref=e12]:
+    - main [ref=e13]:
+      - generic [ref=e17]:
+        - heading "JOHN 10:10" [level=1] [ref=e18]
+        - generic [ref=e19]: "\"I have come that you may have life and have it more abundantly. The enemy comes to steal but God comes to give.\""
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "Format" [level=3] [ref=e23]
+          - combobox [ref=e24]:
+            - generic: Instagram Square · 1080×1080
+            - img [ref=e25]
+        - generic [ref=e28]:
+          - heading "Title" [level=3] [ref=e29]
+          - textbox "JOHN 10:10" [ref=e30]
+          - generic [ref=e31]:
+            - text: Title font
+            - combobox [ref=e32]:
+              - generic: Anton
+              - img [ref=e33]
+          - generic [ref=e36]:
+            - generic [ref=e37]: "Title size: 110px"
+            - slider [ref=e112]
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - heading "Body" [level=3] [ref=e43]
+            - button "Clear highlights" [ref=e44]:
+              - img
+              - text: Clear highlights
+          - textbox "Type your quote..." [ref=e45]: "\"I have come that you may have life and have it more abundantly. The enemy comes to steal but God comes to give.\""
+          - button "Apply text changes" [ref=e46]
+          - paragraph [ref=e47]: Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase.
+          - paragraph [ref=e48]: On phones and tablets, long-press the quote, drag the selection handles, then release to apply the current highlight color.
+          - generic [ref=e49]:
+            - text: Body font
+            - combobox [ref=e50]:
+              - generic: Playfair Display
+              - img [ref=e51]
+          - generic [ref=e54]:
+            - generic [ref=e55]: "Body size: 56px"
+            - slider [ref=e114]
+          - generic [ref=e59]:
+            - text: Alignment
+            - generic [ref=e60]:
+              - button [ref=e61]:
+                - img
+              - button [ref=e62]:
+                - img
+              - button [ref=e63]:
+                - img
+        - generic [ref=e64]:
+          - heading "Colors" [level=3] [ref=e65]
+          - generic [ref=e66]:
+            - generic [ref=e67]: Title color
+            - generic [ref=e68]:
+              - textbox [ref=e69] [cursor=pointer]: "#111111"
+              - textbox [ref=e70]: "#111111"
+          - generic [ref=e71]:
+            - generic [ref=e72]: Body text
+            - generic [ref=e73]:
+              - textbox [ref=e74] [cursor=pointer]: "#111111"
+              - textbox [ref=e75]: "#111111"
+          - generic [ref=e76]:
+            - generic [ref=e77]: Highlight
+            - generic [ref=e78]:
+              - textbox [ref=e79] [cursor=pointer]: "#ffe066"
+              - textbox [ref=e80]: "#ffe066"
+        - generic [ref=e81]:
+          - heading "Background" [level=3] [ref=e82]
+          - generic [ref=e83]:
+            - button "Color" [ref=e84]:
+              - img
+              - text: Color
+            - button "Texture" [ref=e85]:
+              - img
+              - text: Texture
+            - button "Image" [ref=e86]:
+              - img
+              - text: Image
+          - generic [ref=e87]:
+            - button "Cream Paper" [ref=e88]:
+              - generic [ref=e90]: Cream Paper
+            - button "White" [ref=e91]:
+              - generic [ref=e93]: White
+            - button "Ivory" [ref=e94]:
+              - generic [ref=e96]: Ivory
+            - button "Blush" [ref=e97]:
+              - generic [ref=e99]: Blush
+            - button "Sage" [ref=e100]:
+              - generic [ref=e102]: Sage
+            - button "Midnight" [ref=e103]:
+              - generic [ref=e105]: Midnight
+          - generic [ref=e106]:
+            - generic [ref=e107]: Custom
+            - generic [ref=e108]:
+              - textbox [ref=e109] [cursor=pointer]: "#f7f1e6"
+              - textbox [ref=e110]: "#f7f1e6"
