@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import type { Segment } from "./types";
 import { QUOTE_FONTS, type BackgroundMode, type BackgroundTextureId } from "@/lib/quote-fonts";
 
@@ -75,212 +75,234 @@ function getTextureStyles(textureId: BackgroundTextureId, width: number): React.
   }
 }
 
-export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(function QuoteCanvas(
-  props,
-  ref,
-) {
-  const {
-    width,
-    height,
-    background,
-    backgroundMode,
-    backgroundTextureId,
-    backgroundImage,
-    title,
-    titleFontId,
-    titleSize,
-    titleColor,
-    segments,
-    bodyFontId,
-    bodySize,
-    textColor,
-    align,
-    onToggleSegment,
-    onHighlightSelection,
-    interactive = true,
-    fitToContainer = true,
-  } = props;
+export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
+  function QuoteCanvas(props, ref) {
+    const {
+      width,
+      height,
+      background,
+      backgroundMode,
+      backgroundTextureId,
+      backgroundImage,
+      title,
+      titleFontId,
+      titleSize,
+      titleColor,
+      segments,
+      bodyFontId,
+      bodySize,
+      textColor,
+      align,
+      onToggleSegment,
+      onHighlightSelection,
+      interactive = true,
+      fitToContainer = true,
+    } = props;
 
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const suppressNextClickRef = useRef(false);
-  const [scale, setScale] = useState(1);
-  const backgroundLayerStyle: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    backgroundColor: background,
-    pointerEvents: "none",
-  };
+    const wrapperRef = useRef<HTMLDivElement | null>(null);
+    const suppressNextClickRef = useRef(false);
+    const onHighlightSelectionRef = useRef(onHighlightSelection);
+    onHighlightSelectionRef.current = onHighlightSelection;
+    const [scale, setScale] = useState(1);
+    const backgroundLayerStyle: React.CSSProperties = {
+      position: "absolute",
+      inset: 0,
+      backgroundColor: background,
+      pointerEvents: "none",
+    };
 
-  if (backgroundMode === "texture") {
-    Object.assign(backgroundLayerStyle, getTextureStyles(backgroundTextureId, width));
-  }
-
-  if (backgroundMode === "image" && backgroundImage) {
-    Object.assign(backgroundLayerStyle, {
-      backgroundImage: `url(${backgroundImage})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    });
-  }
-
-  useEffect(() => {
-    if (!fitToContainer) return;
-    const el = wrapperRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      const rect = el.getBoundingClientRect();
-      const s = Math.min(rect.width / width, rect.height / height);
-      setScale(s > 0 ? s : 1);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [width, height, fitToContainer]);
-
-  const commitSelection = () => {
-    if (!interactive || !onHighlightSelection) return;
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed) return;
-    const range = sel.getRangeAt(0);
-    const container = document.getElementById("quote-body-text");
-    if (!container || !container.contains(range.commonAncestorContainer)) return;
-
-    // Compute char offsets within the body text
-    const pre = range.cloneRange();
-    pre.selectNodeContents(container);
-    pre.setEnd(range.startContainer, range.startOffset);
-    const start = pre.toString().length;
-    const end = start + range.toString().length;
-    if (end > start) {
-      suppressNextClickRef.current = true;
-      onHighlightSelection(start, end);
+    if (backgroundMode === "texture") {
+      Object.assign(backgroundLayerStyle, getTextureStyles(backgroundTextureId, width));
     }
-    sel.removeAllRanges();
-  };
 
-  const handleMouseUp = () => {
-    commitSelection();
-  };
+    if (backgroundMode === "image" && backgroundImage) {
+      Object.assign(backgroundLayerStyle, {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      });
+    }
 
-  const handleTouchEnd = () => {
-    window.setTimeout(() => {
+    useEffect(() => {
+      if (!fitToContainer) return;
+      const el = wrapperRef.current;
+      if (!el) return;
+      const ro = new ResizeObserver(() => {
+        const rect = el.getBoundingClientRect();
+        const s = Math.min(rect.width / width, rect.height / height);
+        setScale(s > 0 ? s : 1);
+      });
+      ro.observe(el);
+      return () => ro.disconnect();
+    }, [width, height, fitToContainer]);
+
+    const commitSelection = useCallback(() => {
+      if (!interactive) return;
+      const cb = onHighlightSelectionRef.current;
+      if (!cb) return;
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      const range = sel.getRangeAt(0);
+      const container = document.getElementById("quote-body-text");
+      if (!container || !container.contains(range.commonAncestorContainer)) return;
+
+      // Compute char offsets within the body text
+      const pre = range.cloneRange();
+      pre.selectNodeContents(container);
+      pre.setEnd(range.startContainer, range.startOffset);
+      const start = pre.toString().length;
+      const end = start + range.toString().length;
+      if (end > start) {
+        suppressNextClickRef.current = true;
+        cb(start, end);
+      }
+      sel.removeAllRanges();
+    }, [interactive]);
+
+    // On touch devices, use the selectionchange event to reliably detect
+    // when the user finishes a long-press text selection. A short debounce
+    // lets the user adjust the native selection handles before committing.
+    useEffect(() => {
+      if (!interactive) return;
+      if (!window.matchMedia?.("(pointer: coarse)").matches) return;
+
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      const handle = () => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed) return;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => commitSelection(), 200);
+      };
+      document.addEventListener("selectionchange", handle);
+      return () => {
+        document.removeEventListener("selectionchange", handle);
+        if (timer) clearTimeout(timer);
+      };
+    }, [interactive, commitSelection]);
+
+    const handleMouseUp = () => {
       commitSelection();
-    }, 0);
-  };
+    };
 
-  let charCursor = 0;
+    const handleTouchEnd = () => {
+      window.setTimeout(() => {
+        commitSelection();
+      }, 0);
+    };
 
-  return (
-    <div
-      ref={wrapperRef}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
-      }}
-    >
+    let charCursor = 0;
+
+    return (
       <div
-        ref={ref}
+        ref={wrapperRef}
         style={{
-          width: `${width}px`,
-          height: `${height}px`,
-          position: "absolute",
-          left: fitToContainer ? "50%" : 0,
-          top: fitToContainer ? "50%" : 0,
-          transform: fitToContainer
-            ? `translate(-50%, -50%) scale(${scale})`
-            : "none",
-          transformOrigin: "center center",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: `${Math.round(Math.min(width, height) * 0.08)}px`,
-          boxSizing: "border-box",
-          textAlign: align,
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
         }}
       >
-        <div aria-hidden style={backgroundLayerStyle} />
-        {title && (
-          <h1
-            style={{
-              position: "relative",
-              fontFamily: fontFamily(titleFontId),
-              fontSize: `${titleSize}px`,
-              fontWeight: 900,
-              color: titleColor,
-              margin: 0,
-              marginBottom: `${Math.round(titleSize * 0.5)}px`,
-              lineHeight: 1.1,
-              letterSpacing: "0.01em",
-            }}
-          >
-            {title}
-          </h1>
-        )}
-
         <div
-          id="quote-body-text"
-          onMouseUp={handleMouseUp}
-          onTouchEnd={handleTouchEnd}
+          ref={ref}
           style={{
-            position: "relative",
-            fontFamily: fontFamily(bodyFontId),
-            fontSize: `${bodySize}px`,
-            color: textColor,
-            lineHeight: 1.45,
-            userSelect: interactive ? "text" : "none",
-            WebkitUserSelect: interactive ? "text" : "none",
+            width: `${width}px`,
+            height: `${height}px`,
+            position: "absolute",
+            left: fitToContainer ? "50%" : 0,
+            top: fitToContainer ? "50%" : 0,
+            transform: fitToContainer ? `translate(-50%, -50%) scale(${scale})` : "none",
+            transformOrigin: "center center",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: `${Math.round(Math.min(width, height) * 0.08)}px`,
+            boxSizing: "border-box",
+            textAlign: align,
           }}
         >
-          {segments.map((seg, i) => {
-            const start = charCursor;
-            charCursor += seg.text.length;
-            const isWhitespace = /^\s+$/.test(seg.text);
-            const baseStyle: React.CSSProperties = seg.highlightColor
-              ? {
-                  background: seg.highlightColor,
-                  padding: "0.05em 0.18em",
-                  borderRadius: "0.08em",
-                  boxDecorationBreak: "clone",
-                  WebkitBoxDecorationBreak: "clone",
-                }
-              : {};
-            if (isWhitespace) {
+          <div aria-hidden style={backgroundLayerStyle} />
+          {title && (
+            <h1
+              style={{
+                position: "relative",
+                fontFamily: fontFamily(titleFontId),
+                fontSize: `${titleSize}px`,
+                fontWeight: 900,
+                color: titleColor,
+                margin: 0,
+                marginBottom: `${Math.round(titleSize * 0.5)}px`,
+                lineHeight: 1.1,
+                letterSpacing: "0.01em",
+              }}
+            >
+              {title}
+            </h1>
+          )}
+
+          <div
+            id="quote-body-text"
+            onMouseUp={handleMouseUp}
+            onTouchEnd={handleTouchEnd}
+            style={{
+              position: "relative",
+              fontFamily: fontFamily(bodyFontId),
+              fontSize: `${bodySize}px`,
+              color: textColor,
+              lineHeight: 1.45,
+              userSelect: interactive ? "text" : "none",
+              WebkitUserSelect: interactive ? "text" : "none",
+            }}
+          >
+            {segments.map((seg, i) => {
+              const start = charCursor;
+              charCursor += seg.text.length;
+              const isWhitespace = /^\s+$/.test(seg.text);
+              const baseStyle: React.CSSProperties = seg.highlightColor
+                ? {
+                    background: seg.highlightColor,
+                    padding: "0.05em 0.18em",
+                    borderRadius: "0.08em",
+                    boxDecorationBreak: "clone",
+                    WebkitBoxDecorationBreak: "clone",
+                  }
+                : {};
+              if (isWhitespace) {
+                return (
+                  <span key={i} data-start={start}>
+                    {seg.text}
+                  </span>
+                );
+              }
               return (
-                <span key={i} data-start={start}>
+                <span
+                  key={i}
+                  data-start={start}
+                  onClick={(e) => {
+                    if (!interactive || !onToggleSegment) return;
+
+                    if (suppressNextClickRef.current) {
+                      suppressNextClickRef.current = false;
+                      return;
+                    }
+                    // Only toggle on plain click (no text selection)
+                    const sel = window.getSelection();
+                    if (sel && !sel.isCollapsed) return;
+                    e.stopPropagation();
+                    onToggleSegment(i);
+                  }}
+                  style={{
+                    ...baseStyle,
+                    cursor: interactive ? "pointer" : "default",
+                  }}
+                >
                   {seg.text}
                 </span>
               );
-            }
-            return (
-              <span
-                key={i}
-                data-start={start}
-                onClick={(e) => {
-                  if (!interactive || !onToggleSegment) return;
-                  if (window.matchMedia?.("(pointer: coarse)").matches) return;
-                  if (suppressNextClickRef.current) {
-                    suppressNextClickRef.current = false;
-                    return;
-                  }
-                  // Only toggle on plain click (no text selection)
-                  const sel = window.getSelection();
-                  if (sel && !sel.isCollapsed) return;
-                  e.stopPropagation();
-                  onToggleSegment(i);
-                }}
-                style={{
-                  ...baseStyle,
-                  cursor: interactive ? "pointer" : "default",
-                }}
-              >
-                {seg.text}
-              </span>
-            );
-          })}
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
