@@ -103,6 +103,8 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
     const suppressNextClickRef = useRef(false);
     const onHighlightSelectionRef = useRef(onHighlightSelection);
     onHighlightSelectionRef.current = onHighlightSelection;
+    const touchActiveRef = useRef(false);
+    const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [scale, setScale] = useState(1);
     const backgroundLayerStyle: React.CSSProperties = {
       position: "absolute",
@@ -161,23 +163,30 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
     }, [interactive]);
 
     // On touch devices, use the selectionchange event to reliably detect
-    // when the user finishes a long-press text selection. A short debounce
-    // lets the user adjust the native selection handles before committing.
+    // when the user finishes a long-press text selection. Commits are
+    // deferred until the touch ends so the user can drag to extend the
+    // selection across a full sentence before the highlight is applied.
     useEffect(() => {
       if (!interactive) return;
       if (!window.matchMedia?.("(pointer: coarse)").matches) return;
 
-      let timer: ReturnType<typeof setTimeout> | null = null;
       const handle = () => {
         const sel = window.getSelection();
         if (!sel || sel.isCollapsed) return;
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => commitSelection(), 200);
+        if (touchActiveRef.current) return;
+        if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
+        selectionTimerRef.current = setTimeout(() => {
+          selectionTimerRef.current = null;
+          commitSelection();
+        }, 200);
       };
       document.addEventListener("selectionchange", handle);
       return () => {
         document.removeEventListener("selectionchange", handle);
-        if (timer) clearTimeout(timer);
+        if (selectionTimerRef.current) {
+          clearTimeout(selectionTimerRef.current);
+          selectionTimerRef.current = null;
+        }
       };
     }, [interactive, commitSelection]);
 
@@ -185,10 +194,21 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       commitSelection();
     };
 
+    const handleTouchStart = () => {
+      touchActiveRef.current = true;
+      if (selectionTimerRef.current) {
+        clearTimeout(selectionTimerRef.current);
+        selectionTimerRef.current = null;
+      }
+    };
+
     const handleTouchEnd = () => {
-      window.setTimeout(() => {
+      touchActiveRef.current = false;
+      if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
+      selectionTimerRef.current = setTimeout(() => {
+        selectionTimerRef.current = null;
         commitSelection();
-      }, 0);
+      }, 400);
     };
 
     let charCursor = 0;
@@ -243,6 +263,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
           <div
             id="quote-body-text"
             onMouseUp={handleMouseUp}
+            onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             style={{
               position: "relative",
