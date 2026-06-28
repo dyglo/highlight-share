@@ -60,7 +60,9 @@ function Index() {
     backgroundMode: "color",
     backgroundTextureId: "paper-fiber",
     backgroundImage: null,
+    grainIntensity: 0.32,
     align: "center",
+    verticalAlign: "center",
     format: "ig-square",
   });
 
@@ -156,6 +158,7 @@ function Index() {
           backgroundMode: state.backgroundMode,
           backgroundTextureId: state.backgroundTextureId,
           backgroundImage: state.backgroundImage,
+          grainIntensity: state.grainIntensity,
           title: state.title,
           titleFontId: state.titleFontId,
           titleSize: state.titleSize,
@@ -165,6 +168,7 @@ function Index() {
           bodySize: state.bodySize,
           textColor: state.textColor,
           align: state.align,
+          verticalAlign: state.verticalAlign,
         },
         `quote-${format.id}-${Date.now()}.png`,
       );
@@ -240,6 +244,7 @@ function Index() {
                 backgroundMode={state.backgroundMode}
                 backgroundTextureId={state.backgroundTextureId}
                 backgroundImage={state.backgroundImage}
+                grainIntensity={state.grainIntensity}
                 title={state.title}
                 titleFontId={state.titleFontId}
                 titleSize={state.titleSize}
@@ -249,6 +254,7 @@ function Index() {
                 bodySize={state.bodySize}
                 textColor={state.textColor}
                 align={state.align}
+                verticalAlign={state.verticalAlign}
                 onToggleSegment={(index) => toggleSegment(index, state.highlightColor)}
                 onHighlightSelection={(start, end) => highlightSelection(start, end, state.highlightColor)}
               />

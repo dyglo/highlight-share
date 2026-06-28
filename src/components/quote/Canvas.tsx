@@ -1,6 +1,55 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Segment } from "./types";
 import { QUOTE_FONTS, type BackgroundMode, type BackgroundTextureId } from "@/lib/quote-fonts";
+
+
+/**
+ * Generate a tiling grain texture as a PNG data URL using the Canvas API.
+ *
+ * WHY canvas instead of SVG feTurbulence:
+ *   html-to-image does NOT support CSS mix-blend-mode or SVG filter primitives
+ *   (feTurbulence) when capturing the DOM to canvas — both fail silently.
+ *   A canvas-drawn PNG data: URL is just a regular image to html-to-image and
+ *   renders byte-for-byte identically in the browser and in PNG exports.
+ *
+ * The noise is baked directly into the background color pixels so no blend
+ * mode is needed at all: each pixel = baseColor ± random delta * intensity.
+ */
+function generateGrainDataUrl(hexColor: string, intensity: number): string {
+  const SIZE = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  // Normalise hex → RGB (handles both #rgb and #rrggbb)
+  let hex = hexColor.replace("#", "");
+  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  const r = parseInt(hex.slice(0, 2), 16) || 0;
+  const g = parseInt(hex.slice(2, 4), 16) || 0;
+  const b = parseInt(hex.slice(4, 6), 16) || 0;
+
+  // Solid fill first so alpha is correct even if getImageData fails
+  ctx.fillStyle = hexColor;
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Per-pixel luminance noise baked into colour — no blend mode required
+  const imageData = ctx.getImageData(0, 0, SIZE, SIZE);
+  const data = imageData.data;
+  const delta = Math.max(0, Math.min(1, intensity)) * 80; // ±80 levels at intensity=1
+
+  for (let i = 0; i < data.length; i += 4) {
+    const n = (Math.random() - 0.5) * 2 * delta;
+    data[i]     = Math.max(0, Math.min(255, r + n));
+    data[i + 1] = Math.max(0, Math.min(255, g + n));
+    data[i + 2] = Math.max(0, Math.min(255, b + n));
+    data[i + 3] = 255; // fully opaque — no CSS blend mode needed
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas.toDataURL("image/png");
+}
 
 export type CanvasProps = {
   width: number;
@@ -9,6 +58,8 @@ export type CanvasProps = {
   backgroundMode: BackgroundMode;
   backgroundTextureId: BackgroundTextureId;
   backgroundImage: string | null;
+  /** Grain intensity (0–1). Only used when backgroundTextureId === "grain". Default 0.32. */
+  grainIntensity?: number;
   title: string;
   titleFontId: string;
   titleSize: number;
@@ -18,6 +69,8 @@ export type CanvasProps = {
   bodySize: number;
   textColor: string;
   align: "left" | "center" | "right";
+  /** Vertical alignment of the text block within the card. Default "center". */
+  verticalAlign?: "top" | "center" | "bottom";
   onToggleSegment?: (index: number) => void;
   onHighlightSelection?: (start: number, end: number) => void;
   interactive?: boolean;
@@ -28,7 +81,10 @@ function fontFamily(id: string) {
   return QUOTE_FONTS.find((f) => f.id === id)?.family ?? "serif";
 }
 
-function getTextureStyles(textureId: BackgroundTextureId, width: number): React.CSSProperties {
+function getTextureStyles(
+  textureId: BackgroundTextureId,
+  width: number,
+): React.CSSProperties {
   switch (textureId) {
     case "paper-fiber":
       return {
@@ -84,6 +140,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       backgroundMode,
       backgroundTextureId,
       backgroundImage,
+      grainIntensity,
       title,
       titleFontId,
       titleSize,
@@ -93,6 +150,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       bodySize,
       textColor,
       align,
+      verticalAlign = "center",
       onToggleSegment,
       onHighlightSelection,
       interactive = true,
@@ -106,6 +164,15 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
     const touchActiveRef = useRef(false);
     const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [scale, setScale] = useState(1);
+    // Grain texture: generated via Canvas API so it renders identically
+    // in the browser preview AND in html-to-image PNG export.
+    // useMemo re-runs only when the background color or intensity changes.
+    const grainDataUrl = useMemo(() => {
+      if (backgroundMode !== "texture" || backgroundTextureId !== "grain") return null;
+      return generateGrainDataUrl(background, grainIntensity ?? 0.32);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [background, grainIntensity, backgroundMode, backgroundTextureId]);
+
     const backgroundLayerStyle: React.CSSProperties = {
       position: "absolute",
       inset: 0,
@@ -113,7 +180,14 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       pointerEvents: "none",
     };
 
-    if (backgroundMode === "texture") {
+    if (backgroundMode === "texture" && backgroundTextureId === "grain" && grainDataUrl) {
+      // Use the pre-baked PNG tile — no mix-blend-mode, works in html-to-image
+      Object.assign(backgroundLayerStyle, {
+        backgroundImage: `url(${grainDataUrl})`,
+        backgroundSize: "256px 256px",
+        backgroundRepeat: "repeat",
+      });
+    } else if (backgroundMode === "texture" && backgroundTextureId !== "grain") {
       Object.assign(backgroundLayerStyle, getTextureStyles(backgroundTextureId, width));
     }
 
@@ -235,7 +309,12 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
             transformOrigin: "center center",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
+            justifyContent:
+              verticalAlign === "top"
+                ? "flex-start"
+                : verticalAlign === "bottom"
+                  ? "flex-end"
+                  : "center",
             padding: `${Math.round(Math.min(width, height) * 0.08)}px`,
             boxSizing: "border-box",
             textAlign: align,

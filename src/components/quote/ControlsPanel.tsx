@@ -13,13 +13,26 @@ import {
 import {
   QUOTE_FONTS,
   BACKGROUND_PRESETS,
+  IG_GRAIN_PRESETS,
   BACKGROUND_TEXTURES,
   EXPORT_FORMATS,
   type BackgroundMode,
   type BackgroundTextureId,
   type ExportFormatId,
 } from "@/lib/quote-fonts";
-import { AlignCenter, AlignLeft, AlignRight, Eraser, ImagePlus, PaintBucket, ScanText } from "lucide-react";
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignVerticalJustifyStart,
+  Eraser,
+  ImagePlus,
+  Instagram,
+  PaintBucket,
+  ScanText,
+} from "lucide-react";
 
 export type ControlsState = {
   title: string;
@@ -35,7 +48,11 @@ export type ControlsState = {
   backgroundMode: BackgroundMode;
   backgroundTextureId: BackgroundTextureId;
   backgroundImage: string | null;
+  /** Film grain intensity 0–1. Active when backgroundTextureId === "grain". */
+  grainIntensity: number;
   align: "left" | "center" | "right";
+  /** Vertical placement of the text block inside the card. */
+  verticalAlign: "top" | "center" | "bottom";
   format: ExportFormatId;
 };
 
@@ -47,6 +64,13 @@ type Props = {
   onUploadBackgroundImage: (file: File) => void;
   onClearBackgroundImage: () => void;
 };
+
+/** Vertical align icons mapped to values */
+const VERTICAL_ALIGNS = [
+  { value: "top" as const, Icon: AlignVerticalJustifyStart, label: "Top" },
+  { value: "center" as const, Icon: AlignVerticalJustifyCenter, label: "Middle" },
+  { value: "bottom" as const, Icon: AlignVerticalJustifyEnd, label: "Bottom" },
+];
 
 function ColorRow({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -79,6 +103,110 @@ export function ControlsPanel({
 }: Props) {
   return (
     <div className="space-y-6">
+      {/* ── Instagram Card quick-preset ─────────────────────────────── */}
+      <section className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Instagram Card</h3>
+        <button
+          onClick={() =>
+            onChange({
+              backgroundMode: "texture",
+              backgroundTextureId: "grain",
+              background: state.background.startsWith("#f") || state.background === "#ffffff"
+                ? "#1a5c38"
+                : state.background,
+            })
+          }
+          className="group relative w-full overflow-hidden rounded-xl border border-border p-0 transition-all hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {/* Gradient preview strip */}
+          <div className="flex h-14 w-full">
+            {["#1a5c38", "#22527a", "#9c4423", "#b07818", "#5a2467", "#2a2e35"].map((c) => (
+              <div key={c} className="flex-1" style={{ background: c }} />
+            ))}
+          </div>
+          <div className="flex items-center gap-2 bg-muted/60 px-3 py-2 text-left text-xs font-medium">
+            <Instagram className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            Apply Instagram Grain Card
+          </div>
+        </button>
+
+        {/* IG-tuned color swatches — includes white so it's always accessible */}
+        <div className="grid grid-cols-6 gap-1.5">
+          {/* White & black first so they're always visible */}
+          {[
+            { id: "white-ig", name: "White", color: "#ffffff" },
+            { id: "black-ig", name: "Black", color: "#111111" },
+            ...IG_GRAIN_PRESETS,
+          ].map((p) => (
+            <button
+              key={p.id}
+              title={p.name}
+              onClick={() => onChange({ background: p.color })}
+              className={`group relative h-8 w-full rounded-md border-2 transition-all ${
+                state.background === p.color
+                  ? "border-foreground ring-1 ring-foreground/30 scale-105"
+                  : "border-border hover:scale-105 hover:border-foreground/40"
+              }`}
+              style={{ background: p.color }}
+            >
+              <span className="sr-only">{p.name}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Custom background color picker inline */}
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-xs shrink-0">Custom color</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={state.background}
+              onChange={(e) => onChange({ background: e.target.value })}
+              className="h-8 w-10 cursor-pointer rounded border border-border bg-transparent"
+            />
+            <Input
+              value={state.background}
+              onChange={(e) => onChange({ background: e.target.value })}
+              className="h-8 w-24 font-mono text-xs"
+              placeholder="#1a5c38"
+            />
+          </div>
+        </div>
+
+        <p className="text-[10px] text-muted-foreground">
+          Hover a swatch to see the color name.
+        </p>
+
+        {/* Text color quick-switch: Black / White */}
+        <div>
+          <Label className="text-xs">Text color</Label>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onChange({ textColor: "#111111", titleColor: "#111111" })}
+              className={`flex items-center justify-center gap-2 rounded-lg border-2 py-2 text-xs font-medium transition-all ${
+                state.textColor === "#111111"
+                  ? "border-foreground bg-black text-white"
+                  : "border-border bg-white text-black hover:border-foreground/50"
+              }`}
+            >
+              <span className="h-3 w-3 rounded-full border border-border bg-black inline-block" />
+              Black
+            </button>
+            <button
+              onClick={() => onChange({ textColor: "#ffffff", titleColor: "#ffffff" })}
+              className={`flex items-center justify-center gap-2 rounded-lg border-2 py-2 text-xs font-medium transition-all ${
+                state.textColor === "#ffffff"
+                  ? "border-foreground bg-white text-black"
+                  : "border-border bg-black text-white hover:border-foreground/50"
+              }`}
+            >
+              <span className="h-3 w-3 rounded-full border border-border bg-white inline-block" />
+              White
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Format</h3>
         <Select value={state.format} onValueChange={(v) => onChange({ format: v as ExportFormatId })}>
@@ -189,6 +317,22 @@ export function ControlsPanel({
             ))}
           </div>
         </div>
+        <div>
+          <Label className="text-xs">Vertical position</Label>
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            {VERTICAL_ALIGNS.map(({ value, Icon, label }) => (
+              <Button
+                key={value}
+                variant={state.verticalAlign === value ? "default" : "outline"}
+                size="sm"
+                onClick={() => onChange({ verticalAlign: value })}
+                title={label}
+              >
+                <Icon className="mr-1 h-4 w-4" />{label}
+              </Button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="space-y-3">
@@ -255,6 +399,30 @@ export function ControlsPanel({
                   {texture.name}
                 </Button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Grain intensity slider — only visible when grain texture is selected */}
+        {state.backgroundMode === "texture" && state.backgroundTextureId === "grain" && (
+          <div className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Grain intensity</Label>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {Math.round(state.grainIntensity * 100)}%
+              </span>
+            </div>
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={[state.grainIntensity]}
+              onValueChange={([v]) => onChange({ grainIntensity: v })}
+            />
+            <div className="flex justify-between text-[9px] text-muted-foreground">
+              <span>None</span>
+              <span>Reference ≈ 32%</span>
+              <span>Heavy</span>
             </div>
           </div>
         )}
