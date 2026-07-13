@@ -63,7 +63,7 @@ function Index() {
     grainIntensity: 0.32,
     align: "center",
     verticalAlign: "center",
-    format: "ig-square",
+    format: "ig-post",
   });
 
   const [segments, setSegments] = useState<Segment[]>(() => textToSegments(DEFAULT_BODY));

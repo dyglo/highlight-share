@@ -54,7 +54,7 @@ export const GOOGLE_FONTS_HREF =
   "&display=swap";
 
 export const EXPORT_FORMATS = [
-  { id: "ig-square", name: "Instagram Square", width: 1080, height: 1080 },
+  { id: "ig-post", name: "Instagram Post", width: 1080, height: 1350 },
   { id: "ig-story", name: "Instagram Story / Reel", width: 1080, height: 1920 },
   { id: "threads", name: "Threads / Twitter", width: 1200, height: 1200 },
   { id: "fb-post", name: "Facebook Post", width: 1200, height: 630 },
