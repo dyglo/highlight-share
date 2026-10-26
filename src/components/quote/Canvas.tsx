@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Segment } from "./types";
+import type { Segment, TextStyle } from "./types";
+import { FormattingToolbar, type TextSelection } from "./FormattingToolbar";
 import { QUOTE_FONTS, type BackgroundMode, type BackgroundTextureId } from "@/lib/quote-fonts";
-
 
 /**
  * Generate a tiling grain texture as a PNG data URL using the Canvas API.
@@ -25,7 +25,11 @@ function generateGrainDataUrl(hexColor: string, intensity: number): string {
 
   // Normalise hex → RGB (handles both #rgb and #rrggbb)
   let hex = hexColor.replace("#", "");
-  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  if (hex.length === 3)
+    hex = hex
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const r = parseInt(hex.slice(0, 2), 16) || 0;
   const g = parseInt(hex.slice(2, 4), 16) || 0;
   const b = parseInt(hex.slice(4, 6), 16) || 0;
@@ -41,7 +45,7 @@ function generateGrainDataUrl(hexColor: string, intensity: number): string {
 
   for (let i = 0; i < data.length; i += 4) {
     const n = (Math.random() - 0.5) * 2 * delta;
-    data[i]     = Math.max(0, Math.min(255, r + n));
+    data[i] = Math.max(0, Math.min(255, r + n));
     data[i + 1] = Math.max(0, Math.min(255, g + n));
     data[i + 2] = Math.max(0, Math.min(255, b + n));
     data[i + 3] = 255; // fully opaque — no CSS blend mode needed
@@ -73,6 +77,7 @@ export type CanvasProps = {
   verticalAlign?: "top" | "center" | "bottom";
   onToggleSegment?: (index: number) => void;
   onHighlightSelection?: (start: number, end: number) => void;
+  onFormatSelection?: (start: number, end: number, style: TextStyle) => void;
   interactive?: boolean;
   fitToContainer?: boolean;
 };
@@ -81,10 +86,7 @@ function fontFamily(id: string) {
   return QUOTE_FONTS.find((f) => f.id === id)?.family ?? "serif";
 }
 
-function getTextureStyles(
-  textureId: BackgroundTextureId,
-  width: number,
-): React.CSSProperties {
+function getTextureStyles(textureId: BackgroundTextureId, width: number): React.CSSProperties {
   switch (textureId) {
     case "paper-fiber":
       return {
@@ -105,7 +107,7 @@ function getTextureStyles(
         backgroundSize: "14px 14px, 100% 100%",
         backgroundPosition: "0 0, 0 0",
       };
-    case "graph-paper":
+    case "graph-paper": {
       const cellSize = Math.max(20, Math.round(width / 45));
       const lineWidth = Math.max(2, Math.round(width / 540));
       const marginOffset = Math.round(width * 0.12);
@@ -118,6 +120,7 @@ function getTextureStyles(
         backgroundSize: "100% 100%, 100% 100%, 100% 100%",
         backgroundPosition: "0 0, 0 0, 0 0",
       };
+    }
     case "linen":
       return {
         backgroundImage: [
@@ -153,11 +156,16 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       verticalAlign = "center",
       onToggleSegment,
       onHighlightSelection,
+      onFormatSelection,
       interactive = true,
       fitToContainer = true,
     } = props;
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
+    const bodyRef = useRef<HTMLDivElement | null>(null);
+    const [selection, setSelection] = useState<TextSelection | null>(null);
+    const dismissToolbar = useCallback(() => setSelection(null), []);
+    const bodyText = segments.map((seg) => seg.text).join("");
     const suppressNextClickRef = useRef(false);
     const onHighlightSelectionRef = useRef(onHighlightSelection);
     onHighlightSelectionRef.current = onHighlightSelection;
@@ -170,7 +178,6 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
     const grainDataUrl = useMemo(() => {
       if (backgroundMode !== "texture" || backgroundTextureId !== "grain") return null;
       return generateGrainDataUrl(background, grainIntensity ?? 0.32);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [background, grainIntensity, backgroundMode, backgroundTextureId]);
 
     const backgroundLayerStyle: React.CSSProperties = {
@@ -220,7 +227,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed) return;
       const range = sel.getRangeAt(0);
-      const container = document.getElementById("quote-body-text");
+      const container = bodyRef.current;
       if (!container || !container.contains(range.commonAncestorContainer)) return;
 
       // Compute char offsets within the body text
@@ -231,6 +238,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       const end = start + range.toString().length;
       if (end > start) {
         suppressNextClickRef.current = true;
+        setSelection({ start, end, text: container.textContent ?? "" });
         cb(start, end);
       }
       sel.removeAllRanges();
@@ -340,7 +348,24 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
           )}
 
           <div
-            id="quote-body-text"
+            id={interactive ? "quote-body-text" : undefined}
+            ref={bodyRef}
+            tabIndex={interactive ? 0 : undefined}
+            aria-label={
+              interactive ? "Quote text. Select text to highlight and format." : undefined
+            }
+            onPointerDown={() => {
+              suppressNextClickRef.current = false;
+            }}
+            onKeyUp={(event) => {
+              if (
+                event.shiftKey &&
+                ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(
+                  event.key,
+                )
+              )
+                commitSelection();
+            }}
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
@@ -367,9 +392,25 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
                     WebkitBoxDecorationBreak: "clone",
                   }
                 : {};
+              Object.assign(baseStyle, {
+                fontWeight: seg.bold ? 700 : undefined,
+                fontStyle: seg.italic ? "italic" : undefined,
+                textDecorationLine:
+                  [seg.underline ? "underline" : "", seg.strikethrough ? "line-through" : ""]
+                    .filter(Boolean)
+                    .join(" ") || undefined,
+              });
               if (isWhitespace) {
                 return (
-                  <span key={i} data-start={start}>
+                  <span
+                    key={i}
+                    data-start={start}
+                    style={{
+                      fontWeight: baseStyle.fontWeight,
+                      fontStyle: baseStyle.fontStyle,
+                      textDecorationLine: baseStyle.textDecorationLine,
+                    }}
+                  >
                     {seg.text}
                   </span>
                 );
@@ -389,6 +430,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
                     const sel = window.getSelection();
                     if (sel && !sel.isCollapsed) return;
                     e.stopPropagation();
+                    setSelection({ start, end: start + seg.text.length, text: bodyText });
                     onToggleSegment(i);
                   }}
                   style={{
@@ -402,6 +444,19 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
             })}
           </div>
         </div>
+        {interactive &&
+          onFormatSelection &&
+          selection &&
+          selection.text === bodyText &&
+          bodyRef.current && (
+            <FormattingToolbar
+              selection={selection}
+              segments={segments}
+              container={bodyRef.current}
+              onFormat={(style) => onFormatSelection(selection.start, selection.end, style)}
+              onDismiss={dismissToolbar}
+            />
+          )}
       </div>
     );
   },

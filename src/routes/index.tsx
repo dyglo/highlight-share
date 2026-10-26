@@ -3,7 +3,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { QuoteCanvas } from "@/components/quote/Canvas";
 import { ControlsPanel, type ControlsState } from "@/components/quote/ControlsPanel";
 import { exportQuotePng } from "@/components/quote/exportImage";
-import { mergeAdjacent, textToSegments, type Segment, segmentsToText } from "@/components/quote/types";
+import {
+  applySegmentPatch,
+  toggleRangeStyle,
+  mergeAdjacent,
+  textToSegments,
+  type Segment,
+  segmentsToText,
+} from "@/components/quote/types";
 import { EXPORT_FORMATS } from "@/lib/quote-fonts";
 import { Button } from "@/components/ui/button";
 import { Download, Moon, SunMedium } from "lucide-react";
@@ -17,32 +24,6 @@ export const Route = createFileRoute("/")({
 
 const DEFAULT_BODY =
   '"I have come that you may have life and have it more abundantly. The enemy comes to steal but God comes to give."';
-
-function applyHighlightToRange(
-  segs: Segment[],
-  start: number,
-  end: number,
-  color: string | null,
-): Segment[] {
-  const out: Segment[] = [];
-  let cursor = 0;
-  for (const seg of segs) {
-    const segStart = cursor;
-    const segEnd = cursor + seg.text.length;
-    cursor = segEnd;
-
-    if (segEnd <= start || segStart >= end) {
-      out.push({ ...seg });
-      continue;
-    }
-    const a = Math.max(segStart, start) - segStart;
-    const b = Math.min(segEnd, end) - segStart;
-    if (a > 0) out.push({ text: seg.text.slice(0, a), highlightColor: seg.highlightColor });
-    out.push({ text: seg.text.slice(a, b), highlightColor: color });
-    if (b < seg.text.length) out.push({ text: seg.text.slice(b), highlightColor: seg.highlightColor });
-  }
-  return mergeAdjacent(out);
-}
 
 function Index() {
   const [isPureDark, setIsPureDark] = useState(false);
@@ -92,6 +73,7 @@ function Index() {
   const update = (patch: Partial<ControlsState>) => setState((s) => ({ ...s, ...patch }));
 
   const applyBodyText = () => {
+    if (segmentsToText(segments) === state.bodyText) return;
     const newSegs = textToSegments(state.bodyText);
     const savedHighlights = segments.filter((s) => s.highlightColor && !/^\s+$/.test(s.text));
     let nextMatch = 0;
@@ -101,7 +83,7 @@ function Index() {
         const match = savedHighlights[nextMatch];
         if (match && match.text === seg.text) {
           nextMatch += 1;
-          return { ...seg, highlightColor: match.highlightColor };
+          return { ...match, text: seg.text };
         }
         return seg;
       }),
@@ -118,7 +100,7 @@ function Index() {
   };
 
   const highlightSelection = (start: number, end: number, color: string) => {
-    setSegments((prev) => applyHighlightToRange(prev, start, end, color));
+    setSegments((prev) => applySegmentPatch(prev, start, end, { highlightColor: color }));
   };
 
   const clearHighlights = () => {
@@ -195,10 +177,18 @@ function Index() {
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-3">
-            <img src="/logo-mark.svg" alt="" className="h-9 w-9 shrink-0 rounded-xl ring-1 ring-border" />
+            <img
+              src="/logo-mark.svg"
+              alt=""
+              className="h-9 w-9 shrink-0 rounded-xl ring-1 ring-border"
+            />
             <div>
-              <h1 className="text-base font-semibold tracking-tight sm:text-lg">Quote Highlight Studio</h1>
-              <p className="text-xs text-muted-foreground">Highlight, texture, export, and install.</p>
+              <h1 className="text-base font-semibold tracking-tight sm:text-lg">
+                Quote Highlight Studio
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Highlight, texture, export, and install.
+              </p>
             </div>
           </div>
           <div className="flex w-full gap-2 sm:w-auto">
@@ -255,8 +245,13 @@ function Index() {
                 textColor={state.textColor}
                 align={state.align}
                 verticalAlign={state.verticalAlign}
+                onFormatSelection={(start, end, style) =>
+                  setSegments((prev) => toggleRangeStyle(prev, start, end, style))
+                }
                 onToggleSegment={(index) => toggleSegment(index, state.highlightColor)}
-                onHighlightSelection={(start, end) => highlightSelection(start, end, state.highlightColor)}
+                onHighlightSelection={(start, end) =>
+                  highlightSelection(start, end, state.highlightColor)
+                }
               />
             </div>
           </div>

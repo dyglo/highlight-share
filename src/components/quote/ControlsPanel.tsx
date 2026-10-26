@@ -271,7 +271,7 @@ export function ControlsPanel({
           Apply text changes
         </Button>
         <p className="text-xs text-muted-foreground">
-          Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase.
+          Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase. Use the floating toolbar to add bold, italic, underline, or strikethrough.
         </p>
         <p className="text-xs text-muted-foreground">
           On phones and tablets, long-press the quote, drag the selection handles, then release to apply the current highlight color.

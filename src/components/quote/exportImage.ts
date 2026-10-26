@@ -20,7 +20,14 @@ async function getExportFontCss() {
 }
 
 export async function exportQuotePng(
-  props: Omit<CanvasProps, "onToggleSegment" | "onHighlightSelection" | "interactive" | "fitToContainer">,
+  props: Omit<
+    CanvasProps,
+    | "onToggleSegment"
+    | "onHighlightSelection"
+    | "onFormatSelection"
+    | "interactive"
+    | "fitToContainer"
+  >,
   filename: string,
 ) {
   // Mount an off-screen, true-size canvas
@@ -43,7 +50,7 @@ export async function exportQuotePng(
   );
 
   // Wait for fonts + render
-  await (document as any).fonts?.ready;
+  await document.fonts.ready;
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   const target = host.firstElementChild?.firstElementChild as HTMLElement;
