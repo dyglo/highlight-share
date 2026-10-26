@@ -271,7 +271,7 @@ export function ControlsPanel({
           Apply text changes
         </Button>
         <p className="text-xs text-muted-foreground">
-          Edit then apply. Click a word or drag-select a phrase to open the toolbar. Choose Highlight, Bold, Italic, Underline, or Strikethrough independently. Turn on Highlight and a text style to use both.
+          Edit then apply. Click a word or drag-select a phrase to open the toolbar. Choose Highlight, Bold, Italic, Underline, or Strikethrough independently. Turn on Highlight and a text style to use both. Use the color swatch beside Highlight to choose a custom color.
         </p>
         <p className="text-xs text-muted-foreground">
           On phones and tablets, long-press the quote, adjust the selection handles, then choose a style from the toolbar. Selecting text does not apply color.
@@ -339,7 +339,6 @@ export function ControlsPanel({
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Colors</h3>
         <ColorRow label="Title color" value={state.titleColor} onChange={(v) => onChange({ titleColor: v })} />
         <ColorRow label="Body text" value={state.textColor} onChange={(v) => onChange({ textColor: v })} />
-        <ColorRow label="Highlight" value={state.highlightColor} onChange={(v) => onChange({ highlightColor: v })} />
       </section>
 
       <section className="space-y-3">

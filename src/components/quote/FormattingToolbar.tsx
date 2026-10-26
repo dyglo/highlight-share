@@ -19,6 +19,7 @@ export function FormattingToolbar({
   onFormat,
   onHighlight,
   highlightColor,
+  onHighlightColorChange,
   onDismiss,
 }: {
   selection: TextSelection;
@@ -27,6 +28,7 @@ export function FormattingToolbar({
   onFormat: (style: TextStyle) => void;
   onHighlight: () => void;
   highlightColor: string;
+  onHighlightColorChange: (color: string) => void;
   onDismiss: () => void;
 }) {
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -107,10 +109,14 @@ export function FormattingToolbar({
       role="toolbar"
       aria-label="Text formatting"
       aria-orientation="horizontal"
-      className="fixed z-50 flex items-center gap-1 rounded-xl border border-border bg-background p-1.5 text-foreground shadow-xl"
+      className="fixed z-50 flex items-center gap-0.5 rounded-xl border border-border bg-background p-1.5 text-foreground shadow-xl"
       style={{ ...position, visibility: position ? "visible" : "hidden" }}
-      onPointerDown={(event) => event.preventDefault()}
+      onPointerDown={(event) => {
+        // Let the native color picker receive focus and open normally.
+        if (!(event.target instanceof HTMLInputElement)) event.preventDefault();
+      }}
       onKeyDown={(event) => {
+        if (event.target instanceof HTMLInputElement) return;
         const buttons = Array.from(event.currentTarget.querySelectorAll("button"));
         const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
         if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
@@ -134,7 +140,7 @@ export function FormattingToolbar({
           window.getSelection()?.removeAllRanges();
           onHighlight();
         }}
-        className="flex h-10 w-10 flex-col items-center justify-center gap-0.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+        className="flex h-10 w-9 flex-col items-center justify-center gap-0.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
       >
         <Highlighter aria-hidden="true" className="h-4 w-4" />
         <span
@@ -143,6 +149,17 @@ export function FormattingToolbar({
           style={{ backgroundColor: highlightColor }}
         />
       </button>
+      <input
+        type="color"
+        aria-label="Customize highlight color"
+        title="Customize highlight color"
+        value={highlightColor}
+        onChange={(event) => {
+          window.getSelection()?.removeAllRanges();
+          onHighlightColorChange(event.target.value);
+        }}
+        className="h-9 w-7 cursor-pointer rounded-md border border-border bg-transparent p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
       <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
       {actions.map(({ style, label, Icon }) => (
         <button
@@ -155,7 +172,7 @@ export function FormattingToolbar({
             window.getSelection()?.removeAllRanges();
             onFormat(style);
           }}
-          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+          className="flex h-10 w-9 items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
         >
           <Icon aria-hidden="true" className="h-4 w-4" />
         </button>

@@ -76,6 +76,7 @@ export type CanvasProps = {
   /** Vertical alignment of the text block within the card. Default "center". */
   verticalAlign?: "top" | "center" | "bottom";
   highlightColor?: string;
+  onHighlightColorChange?: (start: number, end: number, color: string) => void;
   onHighlightSelection?: (start: number, end: number) => void;
   onFormatSelection?: (start: number, end: number, style: TextStyle) => void;
   interactive?: boolean;
@@ -156,6 +157,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       verticalAlign = "center",
       highlightColor = "#ffe066",
       onHighlightSelection,
+      onHighlightColorChange,
       onFormatSelection,
       interactive = true,
       fitToContainer = true,
@@ -451,6 +453,9 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
               container={bodyRef.current}
               onFormat={(style) => onFormatSelection(selection.start, selection.end, style)}
               highlightColor={highlightColor}
+              onHighlightColorChange={(color) =>
+                onHighlightColorChange?.(selection.start, selection.end, color)
+              }
               onHighlight={() => onHighlightSelection?.(selection.start, selection.end)}
               onDismiss={dismissToolbar}
             />

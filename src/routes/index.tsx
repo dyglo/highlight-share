@@ -4,6 +4,7 @@ import { QuoteCanvas } from "@/components/quote/Canvas";
 import { ControlsPanel, type ControlsState } from "@/components/quote/ControlsPanel";
 import { exportQuotePng } from "@/components/quote/exportImage";
 import {
+  applySegmentPatch,
   toggleRangeHighlight,
   toggleRangeStyle,
   mergeAdjacent,
@@ -240,6 +241,12 @@ function Index() {
                   setSegments((prev) => toggleRangeStyle(prev, start, end, style))
                 }
                 highlightColor={state.highlightColor}
+                onHighlightColorChange={(start, end, color) => {
+                  update({ highlightColor: color });
+                  setSegments((prev) =>
+                    applySegmentPatch(prev, start, end, { highlightColor: color }),
+                  );
+                }}
                 onHighlightSelection={(start, end) =>
                   highlightSelection(start, end, state.highlightColor)
                 }
