@@ -22,11 +22,7 @@ async function getExportFontCss() {
 export async function exportQuotePng(
   props: Omit<
     CanvasProps,
-    | "onToggleSegment"
-    | "onHighlightSelection"
-    | "onFormatSelection"
-    | "interactive"
-    | "fitToContainer"
+    "onHighlightSelection" | "onFormatSelection" | "interactive" | "fitToContainer"
   >,
   filename: string,
 ) {

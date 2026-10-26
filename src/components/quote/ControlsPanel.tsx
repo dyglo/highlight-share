@@ -271,10 +271,10 @@ export function ControlsPanel({
           Apply text changes
         </Button>
         <p className="text-xs text-muted-foreground">
-          Edit then apply. In the preview, click any word to toggle highlight, or drag-select and release to highlight a phrase. Use the floating toolbar to add bold, italic, underline, or strikethrough.
+          Edit then apply. Click a word or drag-select a phrase to open the toolbar. Choose Highlight, Bold, Italic, Underline, or Strikethrough independently. Turn on Highlight and a text style to use both.
         </p>
         <p className="text-xs text-muted-foreground">
-          On phones and tablets, long-press the quote, drag the selection handles, then release to apply the current highlight color.
+          On phones and tablets, long-press the quote, adjust the selection handles, then choose a style from the toolbar. Selecting text does not apply color.
         </p>
         <div>
           <Label className="text-xs">Body font</Label>

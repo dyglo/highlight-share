@@ -4,7 +4,7 @@ import { QuoteCanvas } from "@/components/quote/Canvas";
 import { ControlsPanel, type ControlsState } from "@/components/quote/ControlsPanel";
 import { exportQuotePng } from "@/components/quote/exportImage";
 import {
-  applySegmentPatch,
+  toggleRangeHighlight,
   toggleRangeStyle,
   mergeAdjacent,
   textToSegments,
@@ -90,17 +90,8 @@ function Index() {
     );
   };
 
-  const toggleSegment = (index: number, color: string) => {
-    setSegments((prev) => {
-      const next = prev.map((s, i) =>
-        i === index ? { ...s, highlightColor: s.highlightColor ? null : color } : s,
-      );
-      return mergeAdjacent(next);
-    });
-  };
-
   const highlightSelection = (start: number, end: number, color: string) => {
-    setSegments((prev) => applySegmentPatch(prev, start, end, { highlightColor: color }));
+    setSegments((prev) => toggleRangeHighlight(prev, start, end, color));
   };
 
   const clearHighlights = () => {
@@ -248,7 +239,7 @@ function Index() {
                 onFormatSelection={(start, end, style) =>
                   setSegments((prev) => toggleRangeStyle(prev, start, end, style))
                 }
-                onToggleSegment={(index) => toggleSegment(index, state.highlightColor)}
+                highlightColor={state.highlightColor}
                 onHighlightSelection={(start, end) =>
                   highlightSelection(start, end, state.highlightColor)
                 }

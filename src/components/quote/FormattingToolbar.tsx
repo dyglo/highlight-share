@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bold, Italic, Underline, Strikethrough, X } from "lucide-react";
-import { getRangeStyles, type Segment, type TextStyle } from "./types";
+import { Bold, Italic, Underline, Strikethrough, Highlighter, X } from "lucide-react";
+import { rangeHasHighlight, getRangeStyles, type Segment, type TextStyle } from "./types";
 
 const actions = [
   { style: "bold", label: "Bold", Icon: Bold },
@@ -17,12 +17,16 @@ export function FormattingToolbar({
   segments,
   container,
   onFormat,
+  onHighlight,
+  highlightColor,
   onDismiss,
 }: {
   selection: TextSelection;
   segments: Segment[];
   container: HTMLDivElement;
   onFormat: (style: TextStyle) => void;
+  onHighlight: () => void;
+  highlightColor: string;
   onDismiss: () => void;
 }) {
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -121,6 +125,25 @@ export function FormattingToolbar({
         }
       }}
     >
+      <button
+        type="button"
+        aria-label="Highlight"
+        aria-pressed={rangeHasHighlight(segments, selection.start, selection.end, highlightColor)}
+        title="Toggle highlight color"
+        onClick={() => {
+          window.getSelection()?.removeAllRanges();
+          onHighlight();
+        }}
+        className="flex h-10 w-10 flex-col items-center justify-center gap-0.5 rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+      >
+        <Highlighter aria-hidden="true" className="h-4 w-4" />
+        <span
+          aria-hidden="true"
+          className="h-1 w-5 rounded-sm border border-current/20"
+          style={{ backgroundColor: highlightColor }}
+        />
+      </button>
+      <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
       {actions.map(({ style, label, Icon }) => (
         <button
           key={style}
@@ -128,7 +151,10 @@ export function FormattingToolbar({
           aria-label={label}
           aria-pressed={active[style]}
           title={label}
-          onClick={() => onFormat(style)}
+          onClick={() => {
+            window.getSelection()?.removeAllRanges();
+            onFormat(style);
+          }}
           className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
         >
           <Icon aria-hidden="true" className="h-4 w-4" />

@@ -29,17 +29,42 @@ export function applySegmentPatch(
   return mergeAdjacent(out);
 }
 
+function selectedSegments(segs: Segment[], start: number, end: number): Segment[] {
+  let cursor = 0;
+  return segs.filter((seg) => {
+    const from = cursor;
+    cursor += seg.text.length;
+    return from < end && cursor > start;
+  });
+}
+
+export function rangeHasHighlight(
+  segs: Segment[],
+  start: number,
+  end: number,
+  color: string,
+): boolean {
+  const selected = selectedSegments(segs, start, end);
+  return selected.length > 0 && selected.every((seg) => seg.highlightColor === color);
+}
+
+export function toggleRangeHighlight(
+  segs: Segment[],
+  start: number,
+  end: number,
+  color: string,
+): Segment[] {
+  return applySegmentPatch(segs, start, end, {
+    highlightColor: rangeHasHighlight(segs, start, end, color) ? null : color,
+  });
+}
+
 export function getRangeStyles(
   segs: Segment[],
   start: number,
   end: number,
 ): Record<TextStyle, boolean> {
-  let cursor = 0;
-  const selected = segs.filter((seg) => {
-    const from = cursor;
-    cursor += seg.text.length;
-    return from < end && cursor > start;
-  });
+  const selected = selectedSegments(segs, start, end);
   return Object.fromEntries(
     TEXT_STYLES.map((style) => [
       style,

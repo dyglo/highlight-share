@@ -75,7 +75,7 @@ export type CanvasProps = {
   align: "left" | "center" | "right";
   /** Vertical alignment of the text block within the card. Default "center". */
   verticalAlign?: "top" | "center" | "bottom";
-  onToggleSegment?: (index: number) => void;
+  highlightColor?: string;
   onHighlightSelection?: (start: number, end: number) => void;
   onFormatSelection?: (start: number, end: number, style: TextStyle) => void;
   interactive?: boolean;
@@ -154,7 +154,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       textColor,
       align,
       verticalAlign = "center",
-      onToggleSegment,
+      highlightColor = "#ffe066",
       onHighlightSelection,
       onFormatSelection,
       interactive = true,
@@ -164,11 +164,12 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const bodyRef = useRef<HTMLDivElement | null>(null);
     const [selection, setSelection] = useState<TextSelection | null>(null);
-    const dismissToolbar = useCallback(() => setSelection(null), []);
+    const dismissToolbar = useCallback(() => {
+      setSelection(null);
+      window.getSelection()?.removeAllRanges();
+    }, []);
     const bodyText = segments.map((seg) => seg.text).join("");
     const suppressNextClickRef = useRef(false);
-    const onHighlightSelectionRef = useRef(onHighlightSelection);
-    onHighlightSelectionRef.current = onHighlightSelection;
     const touchActiveRef = useRef(false);
     const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [scale, setScale] = useState(1);
@@ -222,8 +223,6 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
 
     const commitSelection = useCallback(() => {
       if (!interactive) return;
-      const cb = onHighlightSelectionRef.current;
-      if (!cb) return;
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed) return;
       const range = sel.getRangeAt(0);
@@ -239,15 +238,13 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
       if (end > start) {
         suppressNextClickRef.current = true;
         setSelection({ start, end, text: container.textContent ?? "" });
-        cb(start, end);
       }
-      sel.removeAllRanges();
     }, [interactive]);
 
     // On touch devices, use the selectionchange event to reliably detect
     // when the user finishes a long-press text selection. Commits are
     // deferred until the touch ends so the user can drag to extend the
-    // selection across a full sentence before the highlight is applied.
+    // selection across a full sentence before the toolbar opens.
     useEffect(() => {
       if (!interactive) return;
       if (!window.matchMedia?.("(pointer: coarse)").matches) return;
@@ -393,7 +390,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
                   }
                 : {};
               Object.assign(baseStyle, {
-                fontWeight: seg.bold ? 700 : undefined,
+                fontWeight: seg.bold ? 600 : undefined,
                 fontStyle: seg.italic ? "italic" : undefined,
                 textDecorationLine:
                   [seg.underline ? "underline" : "", seg.strikethrough ? "line-through" : ""]
@@ -420,7 +417,7 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
                   key={i}
                   data-start={start}
                   onClick={(e) => {
-                    if (!interactive || !onToggleSegment) return;
+                    if (!interactive) return;
 
                     if (suppressNextClickRef.current) {
                       suppressNextClickRef.current = false;
@@ -431,7 +428,6 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
                     if (sel && !sel.isCollapsed) return;
                     e.stopPropagation();
                     setSelection({ start, end: start + seg.text.length, text: bodyText });
-                    onToggleSegment(i);
                   }}
                   style={{
                     ...baseStyle,
@@ -454,6 +450,8 @@ export const QuoteCanvas = forwardRef<HTMLDivElement, CanvasProps>(
               segments={segments}
               container={bodyRef.current}
               onFormat={(style) => onFormatSelection(selection.start, selection.end, style)}
+              highlightColor={highlightColor}
+              onHighlight={() => onHighlightSelection?.(selection.start, selection.end)}
               onDismiss={dismissToolbar}
             />
           )}

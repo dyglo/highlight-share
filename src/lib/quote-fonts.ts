@@ -9,23 +9,23 @@ export type QuoteFont = {
 export const QUOTE_FONTS: QuoteFont[] = [
   // ── Serif ───────────────────────────────────────────────────────────────
   { id: "cormorant", name: "Cormorant Garamond", family: "'Cormorant Garamond', serif", category: "serif", weights: [400, 600, 700] },
-  { id: "playfair", name: "Playfair Display", family: "'Playfair Display', serif", category: "serif", weights: [400, 700, 900] },
-  { id: "lora", name: "Lora", family: "'Lora', serif", category: "serif", weights: [400, 700] },
-  { id: "merriweather", name: "Merriweather", family: "'Merriweather', serif", category: "serif", weights: [400, 700, 900] },
-  { id: "garamond", name: "EB Garamond", family: "'EB Garamond', serif", category: "serif", weights: [400, 700] },
+  { id: "playfair", name: "Playfair Display", family: "'Playfair Display', serif", category: "serif", weights: [400, 600, 700, 900] },
+  { id: "lora", name: "Lora", family: "'Lora', serif", category: "serif", weights: [400, 600, 700] },
+  { id: "merriweather", name: "Merriweather", family: "'Merriweather', serif", category: "serif", weights: [400, 600, 700, 900] },
+  { id: "garamond", name: "EB Garamond", family: "'EB Garamond', serif", category: "serif", weights: [400, 600, 700] },
   // ── Sans-serif ──────────────────────────────────────────────────────────
   { id: "manrope", name: "Manrope", family: "'Manrope', sans-serif", category: "sans", weights: [400, 600, 700, 800] },
   { id: "jakarta", name: "Plus Jakarta Sans", family: "'Plus Jakarta Sans', sans-serif", category: "sans", weights: [400, 600, 700, 800] },
-  { id: "inter", name: "Inter", family: "'Inter', sans-serif", category: "sans", weights: [400, 700, 900] },
-  { id: "oswald", name: "Oswald", family: "'Oswald', sans-serif", category: "sans", weights: [400, 700] },
+  { id: "inter", name: "Inter", family: "'Inter', sans-serif", category: "sans", weights: [400, 600, 700, 900] },
+  { id: "oswald", name: "Oswald", family: "'Oswald', sans-serif", category: "sans", weights: [400, 600, 700] },
   // ── Display ─────────────────────────────────────────────────────────────
   { id: "bebas", name: "Bebas Neue", family: "'Bebas Neue', sans-serif", category: "display", weights: [400] },
   { id: "anton", name: "Anton", family: "'Anton', sans-serif", category: "display", weights: [400] },
   { id: "archivo-black", name: "Archivo Black", family: "'Archivo Black', sans-serif", category: "display", weights: [400] },
   { id: "abril", name: "Abril Fatface", family: "'Abril Fatface', display", category: "display", weights: [400] },
   // ── Script ──────────────────────────────────────────────────────────────
-  { id: "caveat", name: "Caveat", family: "'Caveat', cursive", category: "script", weights: [400, 700] },
-  { id: "dancing", name: "Dancing Script", family: "'Dancing Script', cursive", category: "script", weights: [400, 700] },
+  { id: "caveat", name: "Caveat", family: "'Caveat', cursive", category: "script", weights: [400, 600, 700] },
+  { id: "dancing", name: "Dancing Script", family: "'Dancing Script', cursive", category: "script", weights: [400, 600, 700] },
 ];
 
 export const GOOGLE_FONTS_HREF =
@@ -33,23 +33,23 @@ export const GOOGLE_FONTS_HREF =
   [
     // Serif
     "family=Cormorant+Garamond:wght@400;600;700",
-    "family=Playfair+Display:wght@400;700;900",
-    "family=Lora:wght@400;700",
-    "family=Merriweather:wght@400;700;900",
-    "family=EB+Garamond:wght@400;700",
+    "family=Playfair+Display:wght@400;600;700;900",
+    "family=Lora:wght@400;600;700",
+    "family=Merriweather:wght@400;600;700;900",
+    "family=EB+Garamond:wght@400;600;700",
     // Sans-serif
     "family=Manrope:wght@400;600;700;800",
     "family=Plus+Jakarta+Sans:wght@400;600;700;800",
-    "family=Inter:wght@400;700;900",
-    "family=Oswald:wght@400;700",
+    "family=Inter:wght@400;600;700;900",
+    "family=Oswald:wght@400;600;700",
     // Display
     "family=Bebas+Neue",
     "family=Anton",
     "family=Archivo+Black",
     "family=Abril+Fatface",
     // Script
-    "family=Caveat:wght@400;700",
-    "family=Dancing+Script:wght@400;700",
+    "family=Caveat:wght@400;600;700",
+    "family=Dancing+Script:wght@400;600;700",
   ].join("&") +
   "&display=swap";
 
